@@ -1,0 +1,3 @@
+# JPEGs
+
+*Documentation goes here.*
