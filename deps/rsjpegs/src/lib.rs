@@ -14,8 +14,11 @@ fn decode_helper(buf: Option<&image::RgbImage>) -> Option<(u32, u32)> {
 }
 
 fn _decode(ptr: &u8, l: u64) -> Result<Vec<u8>, Box<dyn Error>> {
+    println!("In _decode");
     let a = get_byte_array(ptr, l)?;
+    println!("Got byte array");
     let result = image::load_from_memory(a)?;
+    println!("Loaded from bytes");
     let buf = result.as_rgb8();
     let decoded = decode_helper(buf).unwrap_or((0,0));
 
