@@ -5,8 +5,8 @@ JPEGs.hello()
 
 function test()
     f::Vector{UInt8} = read(open("test/rip.jpg", "r"))
-    rval = JPEGs.decode(f)
-    return rval
+    dims = JPEGs.decode(f)
+    return dims
 end
 
 h = test()

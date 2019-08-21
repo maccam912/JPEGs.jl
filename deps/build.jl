@@ -10,9 +10,11 @@ const libname = Sys.iswindows() ? rustlibname : "lib" * rustlibname
 function build_dylib()
     clean()
 
-    run(Cmd(`cargo build --release`, dir=joinpath(@__DIR__, rustprojname)))
+    #run(Cmd(`cargo build --release`, dir=joinpath(@__DIR__, rustprojname)))
+    run(Cmd(`cargo build`, dir=joinpath(@__DIR__, rustprojname)))
 
-    release_dir = joinpath(@__DIR__, "release")
+    #release_dir = joinpath(@__DIR__, "release")
+    release_dir = joinpath(@__DIR__, "debug")
     dylib = dylib_filename()
 
     release_dylib_filepath = joinpath(release_dir, dylib)
