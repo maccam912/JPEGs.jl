@@ -1,12 +1,5 @@
 using Revise, JPEGs
 using Test
 
-JPEGs.hello()
-
-function test()
-    f::Vector{UInt8} = read(open("test/rip.jpg", "r"))
-    dims = JPEGs.decode(f)
-    return dims
-end
-
-h = test()
+jpegbytes = read(open("test/test.jpg", "r"))
+segments = JPEGs.decode_bytes(jpegbytes)
