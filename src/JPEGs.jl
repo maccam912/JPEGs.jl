@@ -4,8 +4,9 @@ module JPEGs
 
 abstract type JPEGSegment end
 
-struct JPEG
+mutable struct JPEG
     segments::Vector{JPEGSegment}
+    mcus::Union{Nothing,Any}
     pixels::Union{Nothing,Array{UInt8,3}}
 end
 
@@ -67,7 +68,7 @@ end
 
 function decode_bytes(b::Vector{UInt8})
     segments = get_segments(b)
-    jpeg = JPEG(segments, nothing)
+    jpeg = JPEG(segments, nothing, nothing)
     parse_sof(jpeg)
     parse_sos(jpeg)
     decode_jpeg_data(jpeg)
@@ -204,7 +205,6 @@ function parse_sos_header(b::Vector{UInt8})
     sbidx = 2+2components+1+1
     skipbytes = b[sbidx:sbidx+2]
     #skipbytes = rawskipbytes[1]*256*256+rawskipbytes[2]*256+rawskipbytes[3]
-    @assert(sbidx+3 == 13)
     return sbidx+3, SOSHeader(length, components, components_array, skipbytes)
 end
 
@@ -218,7 +218,7 @@ end
 function smoosh_segment_bytes(b::Vector{UInt8})::Vector{UInt8}
     newb = []
     i = 1
-    while i < length(b)
+    while i <= length(b)
         push!(newb, b[i])
         if b[i]==0xFF && b[i+1] == 0x00
             i += 1
