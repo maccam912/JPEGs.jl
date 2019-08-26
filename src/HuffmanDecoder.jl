@@ -24,6 +24,7 @@ function decode_jpeg_data(jpeg::JPEG)
             bytes = segment.bytes
         end
     end
+    #println(typeof(jpeg.segments))
     bits = vcat(byte_to_bits.(bytes)...)
     h,w = get_jpeg_hw(jpeg)
     k = 1
@@ -48,35 +49,59 @@ function decode_jpeg_data(jpeg::JPEG)
                 #@show(curr_table)
                 subbits::BitArray = []
                 while k <= length(bits)
-                    println(bits[k:end])
+                    #println(bits[k:end])
                     push!(subbits, bits[k])
                     k += 1
                     if length(subbits) > 16
+                        println("c: $c, tabletype: $tabletype")
                         println("SUBBITS TOO LONG. $subbits")
-                        break
+                        jpeg.mcus = blocks
+                        return
                     end
-                    if isnothing(curr_table)
-                        push!(blocks, (mcu, c, tabletype, 0))
-                        break
-                    else
+                    #if isnothing(curr_table)
+                    #    push!(blocks, (mcu, c, tabletype, 0))
+                    #    break
+                    #else
                         v = check(subbits, curr_table)
                         if !isnothing(v)
+                            if v == 0x00 && tabletype == :AC
+                                push!(blocks, (mcu, c, tabletype, 0))
+                                break
+                            end
                             nextn = []
                             for i=1:v
                                 push!(nextn, bits[k])
                                 k += 1
                             end
                             dcvalue = dc_value_lookup(nextn)
-                            @show(dcvalue)
+                            #@show(dcvalue)
                             push!(blocks, (mcu, c, tabletype, dcvalue))
-                            break
+                            if tabletype == :DC
+                                break
+                            else
+                                subbits = []
+                            end
                         end
-                    end
+                    #end
                 end
             end
         end
     end
-    jpeg.mcus = blocks
+    jpeg.mcus = fix_dcvals(blocks)
+
+end
+
+function fix_dcvals(mcus)
+    newmcus = []
+    rel_value = 0
+    for mcu in mcus
+        if mcu[3] == :DC
+            newmcu = (mcu[1], mcu[2], mcu[3], rel_value+mcu[4])
+            push!(newmcus, newmcu)
+            rel_value = newmcu[4]
+        end
+    end
+    return newmcus
 end
 
 function bitarraytoint(ba::BitArray)
@@ -86,6 +111,10 @@ function bitarraytoint(ba::BitArray)
         retval *= 2
     end
     return retval/2
+end
+
+function check(b, n::Nothing)
+    return 0
 end
 
 function check(b::BitArray, table::Dict{Tuple{Int64,UInt16},UInt8})::Union{Nothing,UInt8}
@@ -104,7 +133,7 @@ function check(b::BitArray, table::Dict{Tuple{Int64,UInt16},UInt8})::Union{Nothi
 end
 
 function dc_value_lookup(nextn)
-    println(nextn)
+    #println(nextn)
     if length(nextn) == 0
         return 0
     elseif length(nextn) == 1 && nextn[1] == 0

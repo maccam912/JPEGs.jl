@@ -1,6 +1,6 @@
 module JPEGs
 # May thanks to http://imrannazar.com/Let%27s-Build-a-JPEG-Decoder%3A-File-Structurw
-
+# Also https://www.impulseadventure.com/photo/jpeg-huffman-coding.html as I got further along
 
 abstract type JPEGSegment end
 
@@ -15,8 +15,16 @@ include("HuffmanDecoder.jl")
 struct SOI <: JPEGSegment end
 struct EOI <: JPEGSegment end
 
+struct DQTTable
+    precision::Int64
+    id::Int64
+    qt::Vector{Int64}
+end
+
 mutable struct DQT <: JPEGSegment
     data::Vector{UInt8}
+    length::Union{Nothing,Int64}
+    tables::Union{Nothing,Vector{DQTTable}}
 end
 
 mutable struct DHT <: JPEGSegment
@@ -88,7 +96,9 @@ function get_segments(b::Vector{UInt8})::Vector{JPEGSegment}
                 idx += 1
             end
             push!(data, b[idx])
-            push!(segments, DQT(data))
+            seg = DQT(data, nothing, nothing)
+            decode_dqt(seg)
+            push!(segments, seg)
         elseif b[idx:idx+1] == [0xFF,0xC4]
             while b[idx+1] != 0xFF || b[idx+2] == 0x00
                 push!(data, b[idx])
@@ -98,7 +108,7 @@ function get_segments(b::Vector{UInt8})::Vector{JPEGSegment}
             dht = DHT(data)
             decode_dht(dht)
             push!(segments, dht)
-        elseif b[idx:idx+1] == [0xFF,0xC0]
+        elseif (b[idx:idx+1] == [0xFF,0xC0]) | (b[idx:idx+1] == [0xFF, 0xC1])
             while b[idx+1] != 0xFF || b[idx+2] == 0x00
                 push!(data, b[idx])
                 idx += 1
@@ -119,6 +129,22 @@ function get_segments(b::Vector{UInt8})::Vector{JPEGSegment}
         idx += 1
     end
     return segments
+end
+
+function decode_dqt(s::DQT)
+    s.length = s.data[3]*256+s.data[4]
+    tables = []
+    for i=5:65:s.length
+        table = parse_dqt_table(s.data[i:i+64])
+        push!(tables, table)
+    end
+    s.tables = tables
+end
+
+function parse_dqt_table(bytes::Vector{UInt8})
+    precision = (bytes[1]&0b11110000)/16
+    id = (bytes[1]&0b00001111)
+    return DQTTable(precision, id, bytes[2:end])
 end
 
 function decode_dht(s::DHT)
