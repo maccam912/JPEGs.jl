@@ -36,3 +36,35 @@ function unzigzag(x::Vector)::Matrix
     end
     return retval
 end
+
+function value_to_dc_code(v::Int64)::Tuple{UInt8,BitArray}
+    if v == 0
+        return (0,[])
+    else
+        numbits = Int64(floor(log2(abs(v))))+1
+        bits = []
+        if v > 0
+            bits = [parse(Int64, i) for i in string(v, base=2)]
+        else
+            bits = [parse(Int64, i) for i in string(abs(v), base=2)]
+            bits = 1 .- bits
+        end
+        return numbits,bits
+    end
+end
+
+function dc_code_to_value(numbits,bits::BitArray)::Int64
+    if numbits == 0
+        return 0
+    else
+        if bits[1] == 1
+            s = *([i ? "1" : "0" for i in bits]...)
+            v = parse(Int64,s,base=2)
+            return v
+        else
+            s = *([i ? "0" : "1" for i in bits]...)
+            v = parse(Int64,s,base=2)
+            return -1*v
+        end
+    end
+end

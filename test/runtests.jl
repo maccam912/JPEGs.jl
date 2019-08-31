@@ -20,6 +20,7 @@ test_subimg = [
 test_block = JPEGs.Block(test_subimg)
 dctd = JPEGs.dct(test_block)
 quantized = JPEGs.quantize(dctd)
+zigzagged = JPEGs.zigzag(quantized)
 
 # test color conversion
 @assert JPEGs.ycbcr_to_rgb(JPEGs.rgb_to_ycbcr(img)) == img
@@ -39,15 +40,15 @@ quantized = JPEGs.quantize(dctd)
 # Test quantizing and unquantizing
 @assert JPEGs.quantize(JPEGs.unquantize(quantized)) == quantized
 
-#Test zigzagging
+# Test zigzagging
 @assert JPEGs.unzigzag(JPEGs.zigzag(quantized)) == quantized
 
+# Test dc value to int and back
+for i=-2047:2047
+    @assert JPEGs.dc_code_to_value(JPEGs.value_to_dc_code(i)...) == i
+end
 
 y,cb,cr = JPEGs.encode_image(img)
 i3 = JPEGs.decode_image(y,cb,cr)
 
-a,b,c = JPEGs.my_jpeg(img)
-
-cc = JPEGs.decode_my_jpeg(a,b,c)
-
-plot(cc)
+plot(i3)

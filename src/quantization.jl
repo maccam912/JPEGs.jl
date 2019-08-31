@@ -1,4 +1,4 @@
-const _Q = [
+const Q = [
 [16 11 10 16 24 40 51 61];
 [12 12 14 19 26 58 60 55];
 [14 13 16 24 40 57 69 56];
@@ -10,21 +10,10 @@ const _Q = [
 ]
 
 function quantize(x::Matrix{Float32})::Matrix{Int64}
-    Q = ones(size(x)...)
-    Q *= 100000
-    for i=25:30,j=25:30
-        Q[i,j] = 1
-    end
     return round.(x ./ Q)
 end
 
 function unquantize(x::Matrix{Int64})::Matrix{Float32}
-    d = Int64(sqrt(length(x)))
-    Q = ones(d,d)
-    Q *= 100000
-    for i=25:30,j=25:30
-        Q[i,j] = 1
-    end
     return x .* Q
 end
 
