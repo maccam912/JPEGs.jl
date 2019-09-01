@@ -65,6 +65,6 @@ function timing()
     allbits = JPEGs.encode_image(img)
     i3 = JPEGs.decode_image(allbits)
 end
-@benchmark timing()
+#@benchmark timing()
 
 plot(i3)
