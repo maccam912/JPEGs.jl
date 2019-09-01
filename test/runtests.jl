@@ -48,7 +48,17 @@ for i=-2047:2047
     @assert JPEGs.dc_code_to_value(JPEGs.value_to_dc_code(i)...) == i
 end
 
-y,cb,cr = JPEGs.encode_image(img)
-i3 = JPEGs.decode_image(y,cb,cr)
+# Test huffman string encoding of dc values
+for i=0:11
+    @assert JPEGs.huffman_string_to_length(JPEGs.length_to_huffman_string(i)) == i
+end
+
+# Test converting value to dc coded bitstring and back
+for i=-2047:2047
+    @assert JPEGs.bits_to_dc_value(JPEGs.value_to_dc_bits(i)) == i
+end
+
+ybits = JPEGs.encode_image(img)
+i3 = JPEGs.decode_image(ybits)
 
 plot(i3)

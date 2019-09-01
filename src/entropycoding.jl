@@ -37,7 +37,7 @@ function unzigzag(x::Vector)::Matrix
     return retval
 end
 
-function value_to_dc_code(v::Int64)::Tuple{UInt8,BitArray}
+function value_to_dc_code(v::Int64)::Tuple{Int64,BitArray}
     if v == 0
         return (0,[])
     else
@@ -67,4 +67,95 @@ function dc_code_to_value(numbits,bits::BitArray)::Int64
             return -1*v
         end
     end
+end
+
+function length_to_huffman_string(b::Int64)::BitArray
+    d::Dict{Int64,BitArray} = Dict(
+    0=>[0,0],
+    1=>[0,1,0],
+    2=>[0,1,1],
+    3=>[1,0,0],
+    4=>[1,0,1],
+    5=>[1,1,0],
+    6=>[1,1,1,0],
+    7=>[1,1,1,1,0],
+    8=>[1,1,1,1,1,0],
+    9=>[1,1,1,1,1,1,0],
+    10=>[1,1,1,1,1,1,1,0],
+    11=>[1,1,1,1,1,1,1,1,0],
+    )
+    return d[b]
+end
+
+function huffman_string_to_length(b::BitArray)::Union{Int64,Nothing}
+    try
+        d::Dict{BitArray,Int64} = Dict(
+        [0,0]=>0,
+        [0,1,0]=>1,
+        [0,1,1]=>2,
+        [1,0,0]=>3,
+        [1,0,1]=>4,
+        [1,1,0]=>5,
+        [1,1,1,0]=>6,
+        [1,1,1,1,0]=>7,
+        [1,1,1,1,1,0]=>8,
+        [1,1,1,1,1,1,0]=>9,
+        [1,1,1,1,1,1,1,0]=>10,
+        [1,1,1,1,1,1,1,1,0]=>11,
+        )
+        return d[b]
+    catch
+        return nothing
+    end
+end
+
+function value_to_dc_bits(v::Int64)::BitArray
+    l, bits = value_to_dc_code(v)
+    ls = length_to_huffman_string(l)
+    return vcat(ls,bits)
+end
+
+function bits_to_dc_value(b::BitArray)::Int64
+    l = nothing
+    ls::BitArray = []
+    while isnothing(l)
+        push!(ls,popfirst!(b))
+        l = huffman_string_to_length(ls)
+    end
+    dcbits = copy(b[1:l])
+    for i=1:l
+        popfirst!(b)
+    end
+    return dc_code_to_value(l,dcbits)
+end
+
+function ac_value_to_bits(v::Int64)::BitArray
+    return [1,1,0,0]
+end
+
+function bits_to_ac_value(b::BitArray)::Int64
+    return 0
+end
+
+function encode_zigzagged_block(x::Vector)::BitArray
+    dc = x[1]
+    dcarray = value_to_dc_bits(dc)
+    ac = x[2:end]
+    return vcat(dcarray, [1, 1, 0, 0])
+end
+
+function decode_zigzagged_block(x::BitArray)::Vector{Int64}
+    v = bits_to_dc_value(x)
+    a = zeros(63)
+    idx = 1
+    while x[1:4] != [1,1,0,0]
+        #parse ac
+        acval = bits_to_ac_value(x)
+        a[idx] = acval
+        idx += 1
+    end
+    for i=1:4
+        popfirst!(x)
+    end
+    return vcat([v], a)
 end
