@@ -8,3 +8,4 @@
 ![Lifecycle](https://img.shields.io/badge/lifecycle-dormant-blue.svg) -->
 [![Build Status](https://travis-ci.com/maccam912/JPEGs.jl.svg?branch=master)](https://travis-ci.com/maccam912/JPEGs.jl)
 [![codecov.io](http://codecov.io/github/maccam912/JPEGs.jl/coverage.svg?branch=master)](http://codecov.io/github/maccam912/JPEGs.jl?branch=master)
+[![Appveyor](https://ci.appveyor.com/api/projects/status/u76gawgyb4gxb985/branch/master)](https://ci.appveyor.com/api/projects/status/u76gawgyb4gxb985/branch/master)
