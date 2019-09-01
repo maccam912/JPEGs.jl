@@ -1,7 +1,7 @@
 using Revise, JPEGs, FileIO, Plots
 using Test
 
-img = load("src/mandrill.tiff")
+img = load("mandrill.tiff")
 i2 = JPEGs.rgb_to_ycbcr(img)
 y,cb,cr = JPEGs.split_channels(i2)
 downsampled_y = JPEGs.downsample_4_2_0(y)
