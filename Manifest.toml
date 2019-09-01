@@ -148,6 +148,12 @@ git-tree-sha1 = "aa69ce81260bcb5e950a5e3b48ccca15447c6d8c"
 uuid = "51556ac3-7006-55f5-8cb3-34580c88182d"
 version = "0.2.4"
 
+[[ImageMagick]]
+deps = ["BinaryProvider", "ColorTypes", "FileIO", "FixedPointNumbers", "ImageCore", "InteractiveUtils", "Libdl", "Pkg", "Random"]
+git-tree-sha1 = "6e1efa8bd5123e18a082c5580c7b8d4a287e1af4"
+uuid = "6218d12a-5da1-5696-b52f-db25d2ecc6d1"
+version = "0.7.5"
+
 [[InteractiveUtils]]
 deps = ["Markdown"]
 uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
