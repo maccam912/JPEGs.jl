@@ -58,7 +58,13 @@ for i=-2047:2047
     @assert JPEGs.bits_to_dc_value(JPEGs.value_to_dc_bits(i)) == i
 end
 
-ybits = JPEGs.encode_image(img)
-i3 = JPEGs.decode_image(ybits)
+allbits = JPEGs.encode_image(img)
+i3 = JPEGs.decode_image(allbits)
+
+function timing()
+    allbits = JPEGs.encode_image(img)
+    i3 = JPEGs.decode_image(allbits)
+end
+@benchmark timing()
 
 plot(i3)

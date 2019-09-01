@@ -25,27 +25,35 @@ function encode_image(img::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8
     y = JPEGs.zigzag.(y)
     cb = JPEGs.zigzag.(cb)
     cr = JPEGs.zigzag.(cr)
-    encoded_blocks = vcat(encode_zigzagged_block.(y)...)
+    encoded_y = JPEGs.encode_zigzagged_block.(y)
+    encoded_cb = JPEGs.encode_zigzagged_block.(cb)
+    encoded_cr = JPEGs.encode_zigzagged_block.(cr)
+    interlaced = [vcat(i...) for i in zip(encoded_y, encoded_cb, encoded_cr)]
+    flattened = reshape(interlaced, *(size(interlaced)...))
+    encoded_blocks = vcat(flattened...)
 
     return encoded_blocks
 end
 
-function decode_image(ybits)::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
+function decode_image(allbits)#::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
     decoded_blocks = []
-    while length(ybits) > 0
-        push!(decoded_blocks, decode_zigzagged_block(ybits))
+    while length(allbits) > 0
+        push!(decoded_blocks, decode_zigzagged_block(allbits))
     end
-    y = JPEGs.unzigzag.(decoded_blocks)
-    #cb = JPEGs.unzigzag.(cb)
-    #cr = JPEGs.unzigzag.(cr)
+    y = []
+    cb = []
+    cr = []
+    for b in 1:3:length(decoded_blocks)
+        push!(y, JPEGs.unzigzag(decoded_blocks[b]))
+        push!(cb, JPEGs.unzigzag(decoded_blocks[b+1]))
+        push!(cr, JPEGs.unzigzag(decoded_blocks[b+2]))
+    end
     y = JPEGs.unquantize.(y)
-    #cb = JPEGs.unquantize.(cb)
-    #cr = JPEGs.unquantize.(cr)
+    cb = JPEGs.unquantize.(cb)
+    cr = JPEGs.unquantize.(cr)
     y = JPEGs.invdct.(y)
-    #cb = JPEGs.invdct.(cb)
-    cb = [Block(zeros(8,8)) for _ in 1:length(y)]
-    #cr = JPEGs.invdct.(cr)
-    cr = [Block(zeros(8,8)) for _ in 1:length(y)]
+    cb = JPEGs.invdct.(cb)
+    cr = JPEGs.invdct.(cr)
     y = reshape(y, (64,64))
     cb = reshape(cb, (64,64))
     cr = reshape(cr, (64,64))
