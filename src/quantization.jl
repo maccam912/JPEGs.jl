@@ -9,14 +9,14 @@ const Q = [
 [72 92 95 98 112 100 103 99];
 ]
 
-function quantize(x::Matrix{Float32})::Matrix{Int64}
+function quantize(x::Matrix{Float32})::Matrix{Int}
     return round.(x ./ Q)
 end
 
-function unquantize(x::Matrix{Int64})::Matrix{Float32}
+function unquantize(x::Matrix{Int})::Matrix{Float32}
     return x .* Q
 end
 
 function unquantize(x::Matrix{Float64})::Matrix{Float32}
-    return unquantize(Int64.(round.(x)))
+    return unquantize(Int.(round.(x)))
 end

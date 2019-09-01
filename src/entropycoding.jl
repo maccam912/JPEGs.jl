@@ -17,8 +17,8 @@ const coords = [
 ]
 
 struct DCACBlock
-    DC::Int64
-    AC::Vector{Int64}
+    DC::Int
+    AC::Vector{Int}
 end
 
 function zigzag(x::Matrix)::Vector
@@ -37,40 +37,40 @@ function unzigzag(x::Vector)::Matrix
     return retval
 end
 
-function value_to_dc_code(v::Int64)::Tuple{Int64,BitArray}
+function value_to_dc_code(v::Int)::Tuple{Int,BitArray}
     if v == 0
         return (0,[])
     else
-        numbits = Int64(floor(log2(abs(v))))+1
+        numbits = Int(floor(log2(abs(v))))+1
         bits = []
         if v > 0
-            bits = [parse(Int64, i) for i in string(v, base=2)]
+            bits = [parse(Int, i) for i in string(v, base=2)]
         else
-            bits = [parse(Int64, i) for i in string(abs(v), base=2)]
+            bits = [parse(Int, i) for i in string(abs(v), base=2)]
             bits = 1 .- bits
         end
         return numbits,bits
     end
 end
 
-function dc_code_to_value(numbits,bits::BitArray)::Int64
+function dc_code_to_value(numbits,bits::BitArray)::Int
     if numbits == 0
         return 0
     else
         if bits[1] == 1
             s = *([i ? "1" : "0" for i in bits]...)
-            v = parse(Int64,s,base=2)
+            v = parse(Int,s,base=2)
             return v
         else
             s = *([i ? "0" : "1" for i in bits]...)
-            v = parse(Int64,s,base=2)
+            v = parse(Int,s,base=2)
             return -1*v
         end
     end
 end
 
-function length_to_huffman_string(b::Int64)::BitArray
-    d::Dict{Int64,BitArray} = Dict(
+function length_to_huffman_string(b::Int)::BitArray
+    d::Dict{Int,BitArray} = Dict(
     0=>[0,0],
     1=>[0,1,0],
     2=>[0,1,1],
@@ -87,9 +87,9 @@ function length_to_huffman_string(b::Int64)::BitArray
     return d[b]
 end
 
-function huffman_string_to_length(b::BitArray)::Union{Int64,Nothing}
+function huffman_string_to_length(b::BitArray)::Union{Int,Nothing}
     try
-        d::Dict{BitArray,Int64} = Dict(
+        d::Dict{BitArray,Int} = Dict(
         [0,0]=>0,
         [0,1,0]=>1,
         [0,1,1]=>2,
@@ -109,13 +109,13 @@ function huffman_string_to_length(b::BitArray)::Union{Int64,Nothing}
     end
 end
 
-function value_to_dc_bits(v::Int64)::BitArray
+function value_to_dc_bits(v::Int)::BitArray
     l, bits = value_to_dc_code(v)
     ls = length_to_huffman_string(l)
     return vcat(ls,bits)
 end
 
-function bits_to_dc_value(b::BitArray)::Int64
+function bits_to_dc_value(b::BitArray)::Int
     l = nothing
     ls::BitArray = []
     while isnothing(l)
@@ -129,11 +129,11 @@ function bits_to_dc_value(b::BitArray)::Int64
     return dc_code_to_value(l,dcbits)
 end
 
-function ac_value_to_bits(v::Int64)::BitArray
+function ac_value_to_bits(v::Int)::BitArray
     return [1,1,0,0]
 end
 
-function bits_to_ac_value(b::BitArray)::Int64
+function bits_to_ac_value(b::BitArray)::Int
     return 0
 end
 
@@ -144,7 +144,7 @@ function encode_zigzagged_block(x::Vector)::BitArray
     return vcat(dcarray, [1, 1, 0, 0])
 end
 
-function decode_zigzagged_block(x::BitArray)::Vector{Int64}
+function decode_zigzagged_block(x::BitArray)::Vector{Int}
     v = bits_to_dc_value(x)
     a = zeros(63)
     idx = 1

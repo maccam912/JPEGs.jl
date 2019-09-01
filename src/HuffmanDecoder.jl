@@ -28,7 +28,7 @@ function decode_jpeg_data(jpeg::JPEG)
     h,w = get_jpeg_hw(jpeg)
     k = 1
     blocks = []
-    num_mcus = Int64(round((h*w)/64))
+    num_mcus = Int(round((h*w)/64))
     for mcu in 1:num_mcus
         for c in [:Y, :Cb, :Cr]
             tables = []
@@ -88,7 +88,7 @@ function bitarraytoint(ba::BitArray)
     return retval/2
 end
 
-function check(b::BitArray, table::Dict{Tuple{Int64,UInt16},UInt8})::Union{Nothing,UInt8}
+function check(b::BitArray, table::Dict{Tuple{Int,UInt16},UInt8})::Union{Nothing,UInt8}
     l = length(b)
     v = 0
     for i=1:l
