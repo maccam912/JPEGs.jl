@@ -58,8 +58,20 @@ for i=-2047:2047
     @assert JPEGs.bits_to_dc_value(JPEGs.value_to_dc_bits(i)) == i
 end
 
-allbits = JPEGs.encode_image(img)
-i3 = JPEGs.decode_image(allbits)
+# Test joining and splitting segments
+soi = [0xFF, 0xD8]
+something = [0xFF, 0xD4]
+joined = [soi, something]
+@assert JPEGs.split_into_segments(JPEGs.segments_into_bytes(joined)) == joined
+
+bytearray = [0xAA, 0xBB, 0xCC, 0xDD]
+@assert JPEGs.pack_bits(JPEGs.unpack_bits(bytearray)) == bytearray
+
+testscan = BitArray([1,1,1,1,0,0,0,0])
+@assert testscan == JPEGs.deserialize_into_jpeg_scan(JPEGs.serialize_jpeg_scan(testscan))
+
+bytes = JPEGs.encode_image(img)
+i3 = JPEGs.decode_image(bytes)
 
 function timing()
     allbits = JPEGs.encode_image(img)

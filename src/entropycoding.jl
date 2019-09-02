@@ -148,6 +148,7 @@ function decode_zigzagged_block(x::BitArray)::Vector{Int}
     v = bits_to_dc_value(x)
     a = zeros(63)
     idx = 1
+    @assert x[1:4] == [1,1,0,0]
     while x[1:4] != [1,1,0,0]
         #parse ac
         acval = bits_to_ac_value(x)

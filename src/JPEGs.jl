@@ -6,6 +6,7 @@ include("block_splitting.jl")
 include("dct.jl")
 include("quantization.jl")
 include("entropycoding.jl")
+include("segments.jl")
 
 function encode_image(img::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2})
     i2 = JPEGs.rgb_to_ycbcr(img)
@@ -31,13 +32,17 @@ function encode_image(img::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8
     interlaced = [vcat(i...) for i in zip(encoded_y, encoded_cb, encoded_cr)]
     flattened = reshape(interlaced, *(size(interlaced)...))
     encoded_blocks = vcat(flattened...)
-
-    return encoded_blocks
+    serialized = JPEGs.serialize_jpeg_scan(encoded_blocks)
+    return serialized
 end
 
-function decode_image(allbits)#::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
+function decode_image(serialized_jpeg::Vector{UInt8})#::Array{ColorTypes.RGB{FixedPointNumbers.Normed{UInt8,8}},2}
+    allbits = JPEGs.deserialize_into_jpeg_scan(serialized_jpeg)
     decoded_blocks = []
-    while length(allbits) > 0
+    while length(decoded_blocks) < (64*64*3)-1
+        if length(decoded_blocks) == 12287
+            println(allbits)
+        end
         push!(decoded_blocks, decode_zigzagged_block(allbits))
     end
     y = []
